@@ -6,6 +6,16 @@ from flask_sqlalchemy import SQLAlchemy
 import json
 
 app = Flask(__name__)
+with app.app_context():
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
+    db = SQLAlchemy(app)
+
+    class Users(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        username = db.Column(db.String, unique = True, nullable=False)
+        password = db.Column(db.Float, unique = False, nullable = False)
+    db.create_all()
 
 
 
