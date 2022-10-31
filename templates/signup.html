@@ -14,12 +14,10 @@
         <li><a style="text-decoration:none" href="{{ url_for('logIn')}}" >Log In</a></li>
     </ul>
     <p>Please enter your info to sign up below!</p>
-    <form>
-        <label for="uname">Username:</label><br>
+    <form action="#" method="post">
         <input type="text" id="uname" name="uname"><br>
-        <label for="uname">Password:</label><br>
         <input type="password" id="password" name="password"><br>
-        <input type="submit" value="Sign Up">
+        <button onclick="addUser()">Submit</button>
 
     </form>
     <script src="{{url_for('static', filename='myScript.js')}}"></script>
