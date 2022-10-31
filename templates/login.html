@@ -4,25 +4,25 @@
     <head>
         <!-- <link rel="stylesheet" href="style.css"> -->
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-        <title>Gradebook</title>
+        <title>UIL|Login</title>
     </head>
     <body>
-    <h1>Gradebook App</h1>
+    <h1>University of Imaginary Land</h1>
     <ul>
-        <li><a style="text-decoration:none" href="{{ url_for('index')}}">Home</a></li>
         <li><a style="text-decoration:none" href="{{ url_for('signUp')}}" >Sign Up</a></li>
         <li><a style="text-decoration:none" href="{{ url_for('logIn')}}" >Log In</a></li>
     </ul>
     <p>Please enter your info to log in below!</p>
 
-    <form>
-        <label for="uname">Username:</label><br>
-        <input type="text" id="uname" name="uname"><br>
-        <label for="uname">Password:</label><br>
-        <input type="password" id="password" name="password"><br>
-        <input type="submit" value="Log In">
-
-    </form>
+    <div class = "form_container">
+        <form>
+            <label for="uname">Username:</label><br>
+            <input type="text" id="uname" name="uname"><br>
+            <label for="uname">Password:</label><br>
+            <input type="password" id="password" name="password"><br>
+            <input type="submit" value="Log In">
+        </form>
+    </div>
     <script src="{{url_for('static', filename='myScript.js')}}"></script>
     </body>
 </html>
