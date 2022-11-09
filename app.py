@@ -15,6 +15,7 @@ with app.app_context():
         id = db.Column(db.Integer, primary_key=True)
         username = db.Column(db.String, unique = True, nullable=False)
         password = db.Column(db.String, unique = False, nullable = False)
+    class 
     db.create_all()
 
 
