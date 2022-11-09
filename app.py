@@ -49,9 +49,13 @@ def signUp():
     if request.method == "POST":
         uname = request.form["uname"]
         password = request.form["password"]
-        new_user = User(username = uname, password = password) 
-        db.session.add(new_user)
-        db.session.commit()
+        result = bool(User.query.filter_by(username=uname).first())
+        if result == False:
+            new_user = User(username = uname, password = password)
+            db.session.add(new_user)
+            db.session.commit()
+        else:
+            print("That user exists")
         return render_template('signup.html')
       
     return render_template('signup.html')
