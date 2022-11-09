@@ -19,13 +19,20 @@ with app.app_context():
 
 
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# Log In Method
 @app.route('/login',methods = ["GET", "POST"])
 def logIn():
+    if request.method == "POST":
+        return do_the_login()
+    else:
+        print("Show the Login Page")
+        return render_template('login.html')
+
+
     # if request.method == "POST":
     #     name = request.form["nm"]
     #     gd = request.form["gd"]
@@ -34,8 +41,9 @@ def logIn():
     #     db.session.commit()
     #     return render_template('login.html')
       
-    return render_template('login.html')
+    # return render_template('login.html')
 
+# Sign Up Method
 @app.route('/signUp',methods = ["GET", "POST"])
 def signUp():
     if request.method == "POST":
@@ -48,6 +56,9 @@ def signUp():
       
     return render_template('signup.html')
 
+def do_the_login():
+    print("Do The Login!")
+    pass
 
 if __name__ == '__main__':
     app.run()
