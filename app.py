@@ -15,7 +15,20 @@ with app.app_context():
         id = db.Column(db.Integer, primary_key=True)
         username = db.Column(db.String, unique = True, nullable=False)
         password = db.Column(db.String, unique = False, nullable = False)
-    class 
+        name = db.Column(db.String, unique = False, nullable = False)
+        teachORstudent =  db.Column(db.String, unique = False, nullable = False)
+    class Student(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        username = db.Column(db.String, unique = True, nullable=False)
+        password = db.Column(db.String, unique = False, nullable = False)
+        teachORstudent =  db.Column(db.String, unique = False, nullable = False)
+    class Classes(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        course_name = db.Column(db.String, unique = True, nullable=False)
+        course_teacherID = db.Column(db.Integer, unique = True, nullable=False)
+        course_numEnrolled = db.Column(db.Integer, unique = False, nullable=False)
+        course_capacity = db.Column(db.String, unique = False, nullable=False)
+        course_time = db.Column(db.String, unique = False, nullable=False)
     db.create_all()
 
 
@@ -50,9 +63,11 @@ def signUp():
     if request.method == "POST":
         uname = request.form["uname"]
         password = request.form["password"]
+        name = request.form["name"]
+        tOr = request.form["teachORstudent"]
         result = bool(User.query.filter_by(username=uname).first())
         if result == False:
-            new_user = User(username = uname, password = password)
+            new_user = User(username = uname, password = password, name = name, teachORstudent = tOr)
             db.session.add(new_user)
             db.session.commit()
         else:
