@@ -19,9 +19,13 @@ with app.app_context():
         teachORstudent =  db.Column(db.String, unique = False, nullable = False)
     class Student(db.Model):
         id = db.Column(db.Integer, primary_key=True)
-        username = db.Column(db.String, unique = True, nullable=False)
-        password = db.Column(db.String, unique = False, nullable = False)
-        teachORstudent =  db.Column(db.String, unique = False, nullable = False)
+        name = db.Column(db.String, unique = False, nullable = False)
+        user_id = db.Column(db.Integer, unique = True, nullable = False)
+    class Teacher(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        name = db.Column(db.String, unique = False, nullable = False)
+        user_id = db.Column(db.Integer, unique = True, nullable = False)
+
     class Classes(db.Model):
         id = db.Column(db.Integer, primary_key=True)
         course_name = db.Column(db.String, unique = True, nullable=False)
@@ -70,6 +74,14 @@ def signUp():
             new_user = User(username = uname, password = password, name = name, teachORstudent = tOr)
             db.session.add(new_user)
             db.session.commit()
+            if tOr == "Student":
+                new_student = Student(name = name ,  user_id = uname)
+                db.session.add(new_student)
+                db.session.commit()
+            if tOr == "Teacher":
+                new_teacher = Teacher(name = name ,  user_id = uname)
+                db.session.add(new_teacher)
+                db.session.commit()
         else:
             print("That user exists")
         return render_template('signup.html')
