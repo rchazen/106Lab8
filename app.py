@@ -3,6 +3,7 @@ from flask import Flask, redirect, url_for, jsonify
 from flask import request
 from flask import abort, render_template
 from flask_sqlalchemy import SQLAlchemy
+
 import json
 
 app = Flask(__name__)
@@ -12,20 +13,27 @@ with app.app_context():
     db = SQLAlchemy(app)
 
     class User(db.Model):
+        __tablename__ = "user"
         id = db.Column(db.Integer, primary_key=True)
         username = db.Column(db.String, unique = True, nullable=False)
         password = db.Column(db.String, unique = False, nullable = False)
         name = db.Column(db.String, unique = False, nullable = False)
         teachORstudent =  db.Column(db.String, unique = False, nullable = False)
     class Student(db.Model):
+        __tablename__ = "student"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique = False, nullable = False)
-        user_id = db.Column(db.Integer, unique = True, nullable = False)
+        user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
+        user = db.relationship('User', backref = db.backref('student', lazy = True))
     class Teacher(db.Model):
+        __tablename__ = "teacher"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique = False, nullable = False)
-        user_id = db.Column(db.Integer, unique = True, nullable = False)
+        user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
+        user = db.relationship('User', backref = db.backref('teacher', lazy = True))
+
     class Classes(db.Model):
+        __tablename__ = "classes"
         id = db.Column(db.Integer, primary_key=True)
         course_name = db.Column(db.String, unique = True, nullable=False)
         course_teacherID = db.Column(db.Integer, unique = True, nullable=False)
@@ -33,6 +41,7 @@ with app.app_context():
         course_capacity = db.Column(db.String, unique = False, nullable=False)
         course_time = db.Column(db.String, unique = False, nullable=False)
     class Enrollment(db.Model):
+        __tablename__ = "enrollment"
         id = db.Column(db.Integer, primary_key = True)
         class_id = db.Column(db.Integer, unique = False, nullable = False)
         student_id = db.Column(db.Integer, unique = False, nullable = False)
