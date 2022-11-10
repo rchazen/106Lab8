@@ -90,11 +90,11 @@ def signUp():
             db.session.add(new_user)
             db.session.commit()
             if tOr == "Student":
-                new_student = Student(name = name ,  user_id = uname)
+                new_student = Student(name = name ,  user = new_user)
                 db.session.add(new_student)
                 db.session.commit()
             if tOr == "Teacher":
-                new_teacher = Teacher(name = name ,  user_id = uname)
+                new_teacher = Teacher(name = name ,  user = new_user)
                 db.session.add(new_teacher)
                 db.session.commit()
         else:
