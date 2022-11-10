@@ -3,6 +3,9 @@ from flask import Flask, redirect, url_for, jsonify
 from flask import request
 from flask import abort, render_template
 from flask_sqlalchemy import SQLAlchemy
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+
 
 import json
 
@@ -10,7 +13,9 @@ app = Flask(__name__)
 with app.app_context():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
+    app.config['SECRET_KEY'] = "secretadmin"
     db = SQLAlchemy(app)
+    admin = Admin(app)
 
     class User(db.Model):
         __tablename__ = "user"
@@ -49,6 +54,9 @@ with app.app_context():
         student_id = db.Column(db.Integer, unique = False, nullable = False)
         grade = db.Column(db.String, unique = False, nullable = False)
     db.create_all()
+    admin.add_view(ModelView(Student, db.session))
+    admin.add_view(ModelView(Teacher, db.session))
+    admin.add_view(ModelView(Classes, db.session))
 
 
 
