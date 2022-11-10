@@ -24,22 +24,24 @@ with app.app_context():
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique = False, nullable = False)
         user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
-        user = db.relationship('User', backref = db.backref('student', lazy = True))
+        user = db.relationship('User', backref = db.backref('students', lazy = True))
     class Teacher(db.Model):
         __tablename__ = "teacher"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique = False, nullable = False)
         user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
-        user = db.relationship('User', backref = db.backref('teacher', lazy = True))
+        user = db.relationship('User', backref = db.backref('teachers', lazy = True))
 
     class Classes(db.Model):
         __tablename__ = "classes"
         id = db.Column(db.Integer, primary_key=True)
         course_name = db.Column(db.String, unique = True, nullable=False)
-        course_teacherID = db.Column(db.Integer, unique = True, nullable=False)
+        course_teacherID = db.Column(db.Integer, db.ForeignKey('teacher.id'), unique = False, nullable=False)
         course_numEnrolled = db.Column(db.Integer, unique = False, nullable=False)
         course_capacity = db.Column(db.String, unique = False, nullable=False)
         course_time = db.Column(db.String, unique = False, nullable=False)
+        teacher = db.relationship('Teacher', backref = db.backref('classess', lazy = True))
+
     class Enrollment(db.Model):
         __tablename__ = "enrollment"
         id = db.Column(db.Integer, primary_key = True)
