@@ -25,7 +25,6 @@ with app.app_context():
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique = False, nullable = False)
         user_id = db.Column(db.Integer, unique = True, nullable = False)
-
     class Classes(db.Model):
         id = db.Column(db.Integer, primary_key=True)
         course_name = db.Column(db.String, unique = True, nullable=False)
@@ -33,6 +32,11 @@ with app.app_context():
         course_numEnrolled = db.Column(db.Integer, unique = False, nullable=False)
         course_capacity = db.Column(db.String, unique = False, nullable=False)
         course_time = db.Column(db.String, unique = False, nullable=False)
+    class Enrollment(db.Model):
+        id = db.Column(db.Integer, primary_key = True)
+        class_id = db.Column(db.Integer, unique = False, nullable = False)
+        student_id = db.Column(db.Integer, unique = False, nullable = False)
+        grade = db.Column(db.String, unique = False, nullable = False)
     db.create_all()
 
 
