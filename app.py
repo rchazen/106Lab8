@@ -8,6 +8,7 @@ from flask_admin.contrib.sqla import ModelView
 import json
 
 app = Flask(__name__)
+app.secret_key = 'shhh'
 with app.app_context():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
@@ -26,13 +27,13 @@ with app.app_context():
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique = False, nullable = False)
         user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
-        user = db.relationship('User', backref = db.backref('students', lazy = True))
+        user = db.relationship('User', backref = db.backref('student', lazy = True))
     class Teacher(db.Model):
         __tablename__ = "teacher"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique = False, nullable = False)
         user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
-        user = db.relationship('User', backref = db.backref('teachers', lazy = True))
+        user = db.relationship('User', backref = db.backref('teacher', lazy = True))
 
     class Classes(db.Model):
         __tablename__ = "classes"
