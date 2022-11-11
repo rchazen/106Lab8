@@ -56,6 +56,7 @@ with app.app_context():
     admin.add_view(ModelView(Student, db.session))
     admin.add_view(ModelView(Teacher, db.session))
     admin.add_view(ModelView(Classes, db.session))
+    admin.add_view(ModelView(Enrollment, db.session))
 
 
 
