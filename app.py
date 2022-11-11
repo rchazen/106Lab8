@@ -60,7 +60,7 @@ with app.app_context():
     db.create_all()
 
     class MyModelView(ModelView):
-
+        form_excluded_columns = ['students', 'teachers']
         form_choices = {
             'teachORstudent': [
                      ('Student', 'Student'),
