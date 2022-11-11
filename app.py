@@ -51,6 +51,7 @@ with app.app_context():
         student_id = db.Column(db.Integer, unique = False, nullable = False)
         grade = db.Column(db.String, unique = False, nullable = False)
     db.create_all()
+    admin.add_view(ModelView(User, db.session))
     admin.add_view(ModelView(Student, db.session))
     admin.add_view(ModelView(Teacher, db.session))
     admin.add_view(ModelView(Classes, db.session))
