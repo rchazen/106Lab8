@@ -51,12 +51,25 @@ with app.app_context():
         student_id = db.Column(db.Integer, unique = False, nullable = False)
         grade = db.Column(db.String, unique = False, nullable = False)
     db.create_all()
-    admin.add_view(ModelView(User, db.session))
+
+    class MyModelView(ModelView):
+
+        form_choices = {
+            'teachORstudent': [
+                     ('Student', 'Student'),
+                     ('Teacher', 'Teacher')
+                    
+                ]
+           }
+ 
+
+    admin.add_view(MyModelView(User, db.session))
     admin.add_view(ModelView(Student, db.session))
     admin.add_view(ModelView(Teacher, db.session))
     admin.add_view(ModelView(Classes, db.session))
 
-
+    def __init__(self):
+            super(MyModelView, self).__init__(User, db.session)
 
 
 @app.route('/')
@@ -113,6 +126,9 @@ def signUp():
 def do_the_login():
     print("Do The Login!")
     pass
+
+
+
 
 if __name__ == '__main__':
     app.run()
