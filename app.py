@@ -51,13 +51,17 @@ with app.app_context():
         time = db.Column(db.String, unique = False, nullable=False)
         teacher = db.relationship('Teacher', back_populates='classes')
 
-
     class Enrollment(db.Model):
         __tablename__ = "enrollment"
         id = db.Column(db.Integer, primary_key = True)
         class_id = db.Column(db.Integer, unique = False, nullable = False)
         student_id = db.Column(db.Integer, unique = False, nullable = False)
         grade = db.Column(db.String, unique = False, nullable = False)
+
+    enrollment = db.Table('enrollment',
+                 db.Column('student_id', db.Integer, db.ForeignKey('student.id'), primary_key = True),
+                 db.Column('classes_id', db.Integer, db.ForeignKey('classes.id'), primary_key = True)
+                 )
     db.create_all()
 
     class UserView(ModelView):
