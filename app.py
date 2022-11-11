@@ -8,6 +8,8 @@ from flask_admin.contrib.sqla import ModelView
 import json
 
 app = Flask(__name__)
+app.secret_key = 'shhh'
+
 with app.app_context():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
@@ -67,6 +69,8 @@ with app.app_context():
     admin.add_view(ModelView(Student, db.session))
     admin.add_view(ModelView(Teacher, db.session))
     admin.add_view(ModelView(Classes, db.session))
+    admin.add_view(ModelView(Enrollment, db.session))
+
 
     def __init__(self):
             super(MyModelView, self).__init__(User, db.session)
