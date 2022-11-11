@@ -23,23 +23,23 @@ with app.app_context():
         password = db.Column(db.String, unique = False, nullable = False)
         students = db.relationship('Student', backref='user', uselist=False)
         teachers = db.relationship('Teacher', backref='user', uselist=False)
-        def __repr__(self):
-            return self.username
+        # def __repr__(self):
+        #     return self.id
     class Student(db.Model):
         __tablename__ = "student"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique=False, nullable=False)
         #Instead of user id we will be using username
-        user_id = db.Column(db.Integer, db.ForeignKey('user.username'))
+        user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     class Teacher(db.Model):
         __tablename__ = "teacher"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique=False, nullable=False)
         # Instead of user id we will be using username
-        user_id = db.Column(db.Integer, db.ForeignKey('user.username'))
+        user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
         classes = db.relationship('Classes', back_populates='teacher')
-        def __repr__(self):
-            return self.user_id
+        # def __repr__(self):
+        #     return self.id
 
     class Classes(db.Model):
         __tablename__ = "classes"
@@ -65,7 +65,7 @@ with app.app_context():
     db.create_all()
 
     class UserView(ModelView):
-        form_excluded_columns = ['students', 'teachers']
+        # form_excluded_columns = ['students', 'teachers']
         form_choices = {
             'teachORstudent': [
                      ('Student', 'Student'),
