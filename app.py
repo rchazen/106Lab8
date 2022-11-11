@@ -21,30 +21,36 @@ with app.app_context():
         id = db.Column(db.Integer, primary_key=True)
         username = db.Column(db.String, unique = True, nullable=False)
         password = db.Column(db.String, unique = False, nullable = False)
-        name = db.Column(db.String, unique = False, nullable = False)
-        teachORstudent =  db.Column(db.String, unique = False, nullable = False)
+        students = db.relationship('Student', backref='user', uselist=False)
+        teachers = db.relationship('Teacher', backref='user', uselist=False)
+        def __repr__(self):
+            return self.username
     class Student(db.Model):
         __tablename__ = "student"
         id = db.Column(db.Integer, primary_key=True)
-        name = db.Column(db.String, unique = False, nullable = False)
-        user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
-        user = db.relationship('User', backref = db.backref('students', lazy = True))
+        name = db.Column(db.String, unique=False, nullable=False)
+        #Instead of user id we will be using username
+        user_id = db.Column(db.Integer, db.ForeignKey('user.username'))
     class Teacher(db.Model):
         __tablename__ = "teacher"
         id = db.Column(db.Integer, primary_key=True)
-        name = db.Column(db.String, unique = False, nullable = False)
-        user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
-        user = db.relationship('User', backref = db.backref('teachers', lazy = True))
+        name = db.Column(db.String, unique=False, nullable=False)
+        # Instead of user id we will be using username
+        user_id = db.Column(db.Integer, db.ForeignKey('user.username'))
+        classes = db.relationship('Classes', back_populates='teacher')
+        def __repr__(self):
+            return self.user_id
 
     class Classes(db.Model):
         __tablename__ = "classes"
         id = db.Column(db.Integer, primary_key=True)
         course_name = db.Column(db.String, unique = True, nullable=False)
-        course_teacherID = db.Column(db.Integer, db.ForeignKey('teacher.id'), unique = False, nullable=False)
-        course_numEnrolled = db.Column(db.Integer, unique = False, nullable=False)
-        course_capacity = db.Column(db.String, unique = False, nullable=False)
-        course_time = db.Column(db.String, unique = False, nullable=False)
-        teacher = db.relationship('Teacher', backref = db.backref('classess', lazy = True))
+        teacher_ID = db.Column(db.String, db.ForeignKey('teacher.user_id'), unique = False, nullable=False)
+        number_enrolled = db.Column(db.Integer, unique = False, nullable=False)
+        capacity = db.Column(db.String, unique = False, nullable=False)
+        time = db.Column(db.String, unique = False, nullable=False)
+        teacher = db.relationship('Teacher', back_populates='classes')
+
 
     class Enrollment(db.Model):
         __tablename__ = "enrollment"
@@ -54,7 +60,7 @@ with app.app_context():
         grade = db.Column(db.String, unique = False, nullable = False)
     db.create_all()
 
-    class MyModelView(ModelView):
+    class UserView(ModelView):
         form_excluded_columns = ['students', 'teachers']
         form_choices = {
             'teachORstudent': [
@@ -65,7 +71,7 @@ with app.app_context():
            }
  
 
-    admin.add_view(MyModelView(User, db.session))
+    admin.add_view(UserView(User, db.session))
     admin.add_view(ModelView(Student, db.session))
     admin.add_view(ModelView(Teacher, db.session))
     admin.add_view(ModelView(Classes, db.session))
@@ -73,7 +79,7 @@ with app.app_context():
 
 
     def __init__(self):
-            super(MyModelView, self).__init__(User, db.session)
+            super(UserView, self).__init__(User, db.session)
 
 
 @app.route('/')
