@@ -7,6 +7,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from functools import wraps
+from sqlalchemy import text
 import json
 
 app = Flask(__name__)
@@ -176,6 +177,7 @@ def logOut():
 @require_role(role='Student')
 def student_your_courses():
     student = Student.query.filter_by(user_id=current_user.id).first()
+    
     return render_template('your_student.html', prefix=' ', name=student.name)
 
 @app.route('/student/addCourses')
