@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+        <title>Gradebook</title>
+    </head>
+    <body>
+        <div class="navbar">
+            <h3>Welcome {{prefix}}{{name}}!</h3>
+            <h1>RSE University</h1>
+            <h3><a href="{{ url_for('logOut')}}">Sign Out</a></h3>
+        </div>
+        <div class="content_container">
+            {% block options %}
+            {% endblock %}
+            {% block content %}
+            {% endblock %}
+        </div>
+        <script src="{{url_for('static', filename='myScript.js')}}"></script>
+    </body>
+</html>
