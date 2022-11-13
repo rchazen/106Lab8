@@ -11,44 +11,58 @@ app = Flask(__name__)
 app.secret_key = 'shhh'
 
 with app.app_context():
+    # Setup
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///instance/db.sqlite3"
     db = SQLAlchemy(app)
     admin = Admin(app)
+
+    # Database
+    # enrollment = db.Table('enrollment',
+    #              db.Column('student_id', db.Integer, db.ForeignKey('student.id'), primary_key = True),
+    #              db.Column('classes_id', db.Integer, db.ForeignKey('classes.id'), primary_key = True)
+    #              )
 
     class User(db.Model):
         __tablename__ = "user"
         id = db.Column(db.Integer, primary_key=True)
         username = db.Column(db.String, unique = True, nullable=False)
         password = db.Column(db.String, unique = False, nullable = False)
-        students = db.relationship('Student', backref='user', uselist=False)
-        teachers = db.relationship('Teacher', backref='user', uselist=False)
-        # def __repr__(self):
-        #     return self.id
+        # Relationship User-Student
+        student = db.relationship('Student', back_populates='user', uselist=False)
+        # Relationship User-Teacher
+        teacher = db.relationship('Teacher', back_populates='user', uselist=False)
+
     class Student(db.Model):
         __tablename__ = "student"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique=False, nullable=False)
-        #Instead of user id we will be using username
-        user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+        # Foreign Key From user.id
+        user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
+        # Relationship User-Student
+        user = db.relationship('User', back_populates='student', uselist=False)
+
     class Teacher(db.Model):
         __tablename__ = "teacher"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique=False, nullable=False)
-        # Instead of user id we will be using username
-        user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+        # Foreign Key From user.id
+        user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
+        # Relationship User-Teacher
+        user = db.relationship('User', back_populates='teacher', uselist=False)
+        # Relationship Classes-Teacher
         classes = db.relationship('Classes', back_populates='teacher')
-        # def __repr__(self):
-        #     return self.id
 
     class Classes(db.Model):
         __tablename__ = "classes"
         id = db.Column(db.Integer, primary_key=True)
         course_name = db.Column(db.String, unique = True, nullable=False)
-        teacher_ID = db.Column(db.String, db.ForeignKey('teacher.user_id'), unique = False, nullable=False)
+        # Foreign Key From teacher.id
+        teacher_ID = db.Column(db.String, db.ForeignKey('teacher.id'), unique = False, nullable=False)
         number_enrolled = db.Column(db.Integer, unique = False, nullable=False)
         capacity = db.Column(db.String, unique = False, nullable=False)
         time = db.Column(db.String, unique = False, nullable=False)
+        # Relationship Classes-Teacher
         teacher = db.relationship('Teacher', back_populates='classes')
 
     class Enrollment(db.Model):
@@ -57,13 +71,9 @@ with app.app_context():
         class_id = db.Column(db.Integer, unique = False, nullable = False)
         student_id = db.Column(db.Integer, unique = False, nullable = False)
         grade = db.Column(db.String, unique = False, nullable = False)
-
-    enrollment = db.Table('enrollment',
-                 db.Column('student_id', db.Integer, db.ForeignKey('student.id'), primary_key = True),
-                 db.Column('classes_id', db.Integer, db.ForeignKey('classes.id'), primary_key = True)
-                 )
     db.create_all()
 
+    # Admin
     class UserView(ModelView):
         # form_excluded_columns = ['students', 'teachers']
         form_choices = {
@@ -74,13 +84,11 @@ with app.app_context():
                 ]
            }
  
-
     admin.add_view(UserView(User, db.session))
     admin.add_view(ModelView(Student, db.session))
     admin.add_view(ModelView(Teacher, db.session))
     admin.add_view(ModelView(Classes, db.session))
     admin.add_view(ModelView(Enrollment, db.session))
-
 
     def __init__(self):
             super(UserView, self).__init__(User, db.session)
