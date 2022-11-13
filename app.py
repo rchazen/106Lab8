@@ -7,12 +7,14 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from functools import wraps
+from sqlalchemy import text
 import json
 
 app = Flask(__name__)
 app.secret_key = 'shhh'
 
 with app.app_context():
+    # Setup
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
     db = SQLAlchemy(app)
@@ -37,8 +39,10 @@ with app.app_context():
         username = db.Column(db.String, unique = True, nullable=False)
         password = db.Column(db.String, unique = False, nullable = False)
         roles = db.relationship('Role', secondary=roles_users,backref=db.backref('users', lazy='dynamic'))
-        students = db.relationship('Student', backref='user', uselist=False)
-        teachers = db.relationship('Teacher', backref='user', uselist=False)
+        # Relationship User-Student
+        student = db.relationship('Student', back_populates='user', uselist=False)
+        # Relationship User-Teacher
+        teacher = db.relationship('Teacher', back_populates='user', uselist=False)
         def has_role(self, role_name):
             #Does the user have this permission?
             my_role = Role.query.filter_by(name=role_name).first()
@@ -66,24 +70,32 @@ with app.app_context():
         __tablename__ = "student"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique=False, nullable=False)
-        user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+        # Foreign Key From user.id
+        user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
+        # Relationship User-Student
+        user = db.relationship('User', back_populates='student', uselist=False)
+
     class Teacher(db.Model):
         __tablename__ = "teacher"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique=False, nullable=False)
-        user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+        # Foreign Key From user.id
+        user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
+        # Relationship User-Teacher
+        user = db.relationship('User', back_populates='teacher', uselist=False)
+        # Relationship Classes-Teacher
         classes = db.relationship('Classes', back_populates='teacher')
-        # def __repr__(self):
-        #     return self.id
 
     class Classes(db.Model):
         __tablename__ = "classes"
         id = db.Column(db.Integer, primary_key=True)
         course_name = db.Column(db.String, unique = True, nullable=False)
-        teacher_ID = db.Column(db.String, db.ForeignKey('teacher.user_id'), unique = False, nullable=False)
+        # Foreign Key From teacher.id
+        teacher_ID = db.Column(db.String, db.ForeignKey('teacher.id'), unique = False, nullable=False)
         number_enrolled = db.Column(db.Integer, unique = False, nullable=False)
         capacity = db.Column(db.String, unique = False, nullable=False)
         time = db.Column(db.String, unique = False, nullable=False)
+        # Relationship Classes-Teacher
         teacher = db.relationship('Teacher', back_populates='classes')
 
     class Enrollment(db.Model):
@@ -97,10 +109,12 @@ with app.app_context():
     #              db.Column('student_id', db.Integer, db.ForeignKey('student.id'), primary_key = True),
     #              db.Column('classes_id', db.Integer, db.ForeignKey('classes.id'), primary_key = True)
     #              )
+    
     db.create_all()
 
+    # Admin
     class UserView(ModelView):
-        form_excluded_columns = ['students', 'teachers']
+        form_excluded_columns = ['student', 'teacher']
         form_choices = {
             'teachORstudent': [
                      ('Student', 'Student'),
@@ -110,14 +124,12 @@ with app.app_context():
            }
 
  
-
     admin.add_view(UserView(User, db.session))
     admin.add_view(ModelView(Role, db.session))
     admin.add_view(ModelView(Student, db.session))
     admin.add_view(ModelView(Teacher, db.session))
     admin.add_view(ModelView(Classes, db.session))
     admin.add_view(ModelView(Enrollment, db.session))
-
 
     def __init__(self):
             super(UserView, self).__init__(User, db.session)
@@ -165,6 +177,7 @@ def logOut():
 @require_role(role='Student')
 def student_your_courses():
     student = Student.query.filter_by(user_id=current_user.id).first()
+    
     return render_template('your_student.html', prefix=' ', name=student.name)
 
 @app.route('/student/addCourses')
