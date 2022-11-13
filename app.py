@@ -7,7 +7,6 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
 import json
 
 app = Flask(__name__)
