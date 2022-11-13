@@ -1,5 +1,10 @@
 body{
-    background: linear-gradient(to right, #00a8f0, #be74ff); 
+    background: linear-gradient(to right, #00a8f0, #be74ff);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.intro, .form_container{
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -11,4 +16,65 @@ body{
     padding: 10px;
     width: fit-content;
     border-radius: 10px;
+}
+
+.navbar{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: whitesmoke;
+}
+
+.navbar h3 a{
+    text-decoration: none;
+    color: whitesmoke;
+}
+
+.content_container{
+    background: lightgray;
+    width: 90%;
+    height: 20rem;
+}
+
+.option_container{
+    display: flex;
+    width: 100%;
+}
+
+.student_option, .student_option_active, .teacher_option_active{
+    display: flex;
+    background: whitesmoke;
+    width: 50%;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.teacher_option_active{
+    width: 100%;
+}
+
+.student_option_active, .teacher_option_active{
+    background: lightgray;
+}
+
+.student_option a, .student_option_active a, .teacher_option_active a{
+    text-decoration: none;
+    color: black;
+}
+.table_container{
+    width: auto;
+    padding: 2rem;
+}
+
+table_container table, th, td{
+    border: 2px solid;
+    text-align: left;
+}
+
+.table_container table{
+    width: 100%;
+    border-collapse: collapse;
+    background: whitesmoke;
 }

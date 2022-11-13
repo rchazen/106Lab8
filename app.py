@@ -1,10 +1,13 @@
 import flask
 from flask import Flask, redirect, url_for, jsonify
-from flask import request
+from flask import request, flash
 from flask import abort, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 import json
 
 app = Flask(__name__)
@@ -14,28 +17,61 @@ with app.app_context():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
     db = SQLAlchemy(app)
+    #Sets up admin page
     admin = Admin(app)
+    #Sets up login manager
+    login_manager = LoginManager()
+    login_manager.login_view = 'logIn'
+    login_manager.init_app(app)
 
-    class User(db.Model):
+    class Role(db.Model):
+        __tablename__ = "role"
+        id = db.Column(db.Integer, primary_key=True)
+        name = db.Column(db.String(80), unique=True)
+    roles_users = db.Table('roles_users',
+                           db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+                           db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
+
+    class User(UserMixin, db.Model):
         __tablename__ = "user"
         id = db.Column(db.Integer, primary_key=True)
         username = db.Column(db.String, unique = True, nullable=False)
         password = db.Column(db.String, unique = False, nullable = False)
+        roles = db.relationship('Role', secondary=roles_users,backref=db.backref('users', lazy='dynamic'))
         students = db.relationship('Student', backref='user', uselist=False)
         teachers = db.relationship('Teacher', backref='user', uselist=False)
-        # def __repr__(self):
-        #     return self.id
+        def has_role(self, role_name):
+            #Does the user have this permission?
+            my_role = Role.query.filter_by(name=role_name).first()
+            if my_role in self.roles:
+                return True
+            else:
+                return False
+    def require_role(role):
+        #make sure user has this role
+        def decorator(func):
+            @wraps(func)
+            def wrapped_function(*args, **kwargs):
+                if not current_user.has_role(role):
+                    return redirect("/")
+                else:
+                    return func(*args, **kwargs)
+            return wrapped_function
+        return decorator
+    #A user loader tells Flask-Login how to find a specific user from the ID that is stored in their session cookie
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
     class Student(db.Model):
         __tablename__ = "student"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique=False, nullable=False)
-        #Instead of user id we will be using username
         user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     class Teacher(db.Model):
         __tablename__ = "teacher"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String, unique=False, nullable=False)
-        # Instead of user id we will be using username
         user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
         classes = db.relationship('Classes', back_populates='teacher')
         # def __repr__(self):
@@ -58,14 +94,14 @@ with app.app_context():
         student_id = db.Column(db.Integer, unique = False, nullable = False)
         grade = db.Column(db.String, unique = False, nullable = False)
 
-    enrollment = db.Table('enrollment',
-                 db.Column('student_id', db.Integer, db.ForeignKey('student.id'), primary_key = True),
-                 db.Column('classes_id', db.Integer, db.ForeignKey('classes.id'), primary_key = True)
-                 )
+    # enrollment = db.Table('enrollment',
+    #              db.Column('student_id', db.Integer, db.ForeignKey('student.id'), primary_key = True),
+    #              db.Column('classes_id', db.Integer, db.ForeignKey('classes.id'), primary_key = True)
+    #              )
     db.create_all()
 
     class UserView(ModelView):
-        # form_excluded_columns = ['students', 'teachers']
+        form_excluded_columns = ['students', 'teachers']
         form_choices = {
             'teachORstudent': [
                      ('Student', 'Student'),
@@ -73,9 +109,11 @@ with app.app_context():
                     
                 ]
            }
+
  
 
     admin.add_view(UserView(User, db.session))
+    admin.add_view(ModelView(Role, db.session))
     admin.add_view(ModelView(Student, db.session))
     admin.add_view(ModelView(Teacher, db.session))
     admin.add_view(ModelView(Classes, db.session))
@@ -88,58 +126,61 @@ with app.app_context():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return redirect(url_for('logIn'))
 
 # Log In Method
-@app.route('/login',methods = ["GET", "POST"])
+@app.route('/login')
 def logIn():
-    if request.method == "POST":
-        return do_the_login()
-    else:
-        print("Show the Login Page")
-        return render_template('login.html')
+    return render_template('login.html')
 
+@app.route('/login', methods=['POST'])
+def login_post():
+    #Get login information from the form
+    username = request.form.get('uname')
+    password = request.form.get('password')
+    #get user information
+    user = User.query.filter_by(username=username).first()
+    #check if user exists
+    if not user or not user.password == password:
+        flash('Please check your login details and try again.')
+        return redirect(url_for('logIn'))
 
-    # if request.method == "POST":
-    #     name = request.form["nm"]
-    #     gd = request.form["gd"]
-    #     new_student = Student(name = uname, password = password) 
-    #     db.session.add(new_student)
-    #     db.session.commit()
-    #     return render_template('login.html')
-      
-    # return render_template('login.html')
+    #if user role is teacher then login as teacher
+    if user.has_role('Teacher'):
+        login_user(user)
+        return redirect(url_for('teacher_home'))
+    #if user role is student then login as student
+    elif user.has_role('Student'):
+        login_user(user)
+        return redirect(url_for('student_your_courses'))
+    return "Can not log in: Do not know type of Role"
 
-# Sign Up Method
-@app.route('/signUp',methods = ["GET", "POST"])
-def signUp():
-    if request.method == "POST":
-        uname = request.form["uname"]
-        password = request.form["password"]
-        name = request.form["name"]
-        tOr = request.form["teachORstudent"]
-        result = bool(User.query.filter_by(username=uname).first())
-        if result == False:
-            new_user = User(username = uname, password = password, name = name, teachORstudent = tOr)
-            db.session.add(new_user)
-            db.session.commit()
-            if tOr == "Student":
-                new_student = Student(name = name ,  user = new_user)
-                db.session.add(new_student)
-                db.session.commit()
-            if tOr == "Teacher":
-                new_teacher = Teacher(name = name ,  user = new_user)
-                db.session.add(new_teacher)
-                db.session.commit()
-        else:
-            print("That user exists")
-        return render_template('signup.html')
-      
-    return render_template('signup.html')
+@app.route('/logout')
+@login_required
+def logOut():
+    logout_user()
+    return redirect(url_for('logIn'))
 
-def do_the_login():
-    print("Do The Login!")
-    pass
+@app.route('/student/yourCourses')
+@login_required
+@require_role(role='Student')
+def student_your_courses():
+    student = Student.query.filter_by(user_id=current_user.id).first()
+    return render_template('your_student.html', prefix=' ', name=student.name)
+
+@app.route('/student/addCourses')
+@login_required
+@require_role(role='Student')
+def student_add_courses():
+    student = Student.query.filter_by(user_id=current_user.id).first()
+    return render_template('add_student.html', prefix=' ', name=student.name)
+
+@app.route('/teacher')
+@login_required
+@require_role(role='Teacher')
+def teacher_home():
+    teacher = Teacher.query.filter_by(user_id=current_user.id).first()
+    return render_template('teacher.html', prefix=' Dr. ', name=teacher.name)
 
 
 
