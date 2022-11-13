@@ -15,7 +15,7 @@ app.secret_key = 'shhh'
 with app.app_context():
     # Setup
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///instance/db.sqlite3"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
     db = SQLAlchemy(app)
     #Sets up admin page
     admin = Admin(app)
@@ -113,7 +113,7 @@ with app.app_context():
 
     # Admin
     class UserView(ModelView):
-        form_excluded_columns = ['students', 'teachers']
+        form_excluded_columns = ['student', 'teacher']
         form_choices = {
             'teachORstudent': [
                      ('Student', 'Student'),
