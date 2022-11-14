@@ -48,11 +48,14 @@ with app.app_context():
         student_id = db.Column(db.Integer, db.ForeignKey('classes.id'), unique = False)
         # Relationship enrollment-student
         student = db.relationship('Student', back_populates='enrollment')
-
+   
     class Role(db.Model):
         __tablename__ = "role"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String(80), unique=True)
+
+        def __repr__(self):
+            return self.name
 
     class User(UserMixin, db.Model):
         __tablename__ = "user"
@@ -73,7 +76,8 @@ with app.app_context():
                 return True
             else:
                 return False
-    
+        def __repr__(self):
+            return self.username
     def require_role(role):
         #make sure user has this role
         def decorator(func):
@@ -104,6 +108,9 @@ with app.app_context():
         # Relationship Classes-Student
         classes = db.relationship('Classes',secondary='student_classes', back_populates='student')
         
+        def __repr__(self):
+            return self.name
+
     class Teacher(db.Model):
         __tablename__ = "teacher"
         id = db.Column(db.Integer, primary_key=True)
@@ -114,6 +121,9 @@ with app.app_context():
         user = db.relationship('User', back_populates='teacher', uselist=False)
         # Relationship Classes-Teacher
         classes = db.relationship('Classes', back_populates='teacher')
+
+        def __repr__(self):
+            return self.name
 
     class Classes(db.Model):
         __tablename__ = "classes"
@@ -130,11 +140,13 @@ with app.app_context():
         enrollment = db.relationship('Enrollment', back_populates='classes')
         # Relationship Class-Student
         student = db.relationship('Student', secondary='student_classes', back_populates='classes')
+        def __repr__(self):
+            return self.course_name
     db.create_all()
 
     # Admin
     class UserView(ModelView):
-        form_excluded_columns = ['students', 'teachers']
+        form_excluded_columns = ['student', 'teacher', 'roles']
         form_choices = {
             'teachORstudent': [
                      ('Student', 'Student'),
@@ -142,13 +154,20 @@ with app.app_context():
                     
                 ]
            }
-
- 
+    class StudentView(ModelView):
+        form_excluded_columns = ['enrollment', 'classes']
+        
+    class TeacherView(ModelView):
+        form_excluded_columns = ['classes']
+        
+    class ClassView(ModelView):
+        form_excluded_columns = ['enrollment', 'student']
+        
     admin.add_view(UserView(User, db.session))
     admin.add_view(ModelView(Role, db.session))
-    admin.add_view(ModelView(Student, db.session))
-    admin.add_view(ModelView(Teacher, db.session))
-    admin.add_view(ModelView(Classes, db.session))
+    admin.add_view(StudentView(Student, db.session))
+    admin.add_view(TeacherView(Teacher, db.session))
+    admin.add_view(ClassView(Classes, db.session))
     admin.add_view(ModelView(Enrollment, db.session))
 
     def __init__(self):
@@ -218,6 +237,10 @@ def student_your_courses():
 @login_required
 @require_role(role='Student')
 def student_add_courses():
+    if request.method == "POST":
+        course = request.form["course"]
+        print(course)
+        #new_enrollment = Enrollment(classes_id = )
     student = Student.query.filter_by(user_id=current_user.id).first()
     sql = text('''
     SELECT course_name, teacher.name, classes.time, classes.number_enrolled, classes.capacity

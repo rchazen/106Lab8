@@ -2,7 +2,11 @@
 
 {% block options %}
     <div class="option_container">
-        <div class="teacher_option_active"> {{ rows.course_name }} </div>
+        <button><a href ="{{url_for('teacher_home')}}">back</a></button>
+
+        {% for row in rows %}
+        <div class="teacher_option_active"> {{ row.course_name }} </div>
+        {% endfor %}
     </div>
 {% endblock %}
 
@@ -15,6 +19,8 @@
             </tr>
             {% for row in rows %}
             <tr>
+                <td>{{row.name}}</td>
+                <td>{{row.grade}}</td>
             </tr>
             {% endfor %}
         </table>
