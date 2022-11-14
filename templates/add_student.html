@@ -17,16 +17,18 @@
                 <th>Students Enrolled</th>
                 <th>Add Class</th>
             </tr>
-            {% for row in rows %}
-            <form action="#" method = "post">
-            <tr>  
-                <td>{{row.course_name}}</td>
-                <td>{{row.name}}</td>
-                <td>{{row.time}}</td>
-                <td>{{row.number_enrolled}}/{{row.capacity}}</td> 
-                <td><button onclick="addEnrollement()">Enroll</button></td>
+            {% for class in classes %}
+            <tr>
+                <td>{{class.course_name}}</td>
+                <td>{{class.name}}</td>
+                <td>{{class.time}}</td>
+                <td>{{class.number_enrolled}}/{{class.capacity}}</td>
+                {% for enroll in enrolled if enroll.classes_id == class.id and enroll.student_id == person.id%}
+                    <td><a href="{{ url_for('remove', class_id=class.id) }}">Remove</a></td>
+                {% else %}
+                    <td><a href="{{ url_for('add', class_id=class.id) }}">Add</a></td>
+                {% endfor %}
             </tr>
-        </form>
         {% endfor %}
 
         </table>

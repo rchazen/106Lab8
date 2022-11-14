@@ -41,11 +41,11 @@ with app.app_context():
         id = db.Column(db.Integer, primary_key=True)
         grade = db.Column(db.Integer, unique = False, nullable = False)
         # Foreign Key From student.id
-        classes_id = db.Column(db.Integer, db.ForeignKey('student.id'), unique = False)
+        classes_id = db.Column(db.Integer, db.ForeignKey('classes.id'), unique = False)
         # Relationship enrollment-class
         classes = db.relationship('Classes', back_populates='enrollment')
         # Foreign Key From class.id
-        student_id = db.Column(db.Integer, db.ForeignKey('classes.id'), unique = False)
+        student_id = db.Column(db.Integer, db.ForeignKey('student.id'), unique = False)
         # Relationship enrollment-student
         student = db.relationship('Student', back_populates='enrollment')
    
@@ -146,7 +146,7 @@ with app.app_context():
 
     # Admin
     class UserView(ModelView):
-        form_excluded_columns = ['student', 'teacher', 'roles']
+        form_excluded_columns = ['student', 'teacher']
         form_choices = {
             'teachORstudent': [
                      ('Student', 'Student'),
@@ -155,13 +155,13 @@ with app.app_context():
                 ]
            }
     class StudentView(ModelView):
-        form_excluded_columns = ['enrollment', 'classes']
+        form_excluded_columns = []
         
     class TeacherView(ModelView):
         form_excluded_columns = ['classes']
         
     class ClassView(ModelView):
-        form_excluded_columns = ['enrollment', 'student']
+        form_excluded_columns = ['student']
         
     admin.add_view(UserView(User, db.session))
     admin.add_view(ModelView(Role, db.session))
@@ -231,7 +231,7 @@ def student_your_courses():
     results = result.mappings().all()
     
     # course = row.course_name, teacher = row.teacher_name, time = row.time, num_enrolled = row.number_enrolled,
-    return render_template('your_student.html', prefix=' ', name=student.name, rows = results)
+    return render_template('your_student.html', prefix=' ', person=student, classes = results)
 
 @app.route('/student/addCourses')
 @login_required
@@ -242,15 +242,38 @@ def student_add_courses():
         print(course)
         #new_enrollment = Enrollment(classes_id = )
     student = Student.query.filter_by(user_id=current_user.id).first()
+    enrolled = Enrollment.query.filter_by(student_id=student.id).all()
     sql = text('''
-    SELECT course_name, teacher.name, classes.time, classes.number_enrolled, classes.capacity
-    FROM  classes, teacher
+    SELECT course_name, teacher.name, classes.time, classes.number_enrolled, classes.capacity, classes.id
+    FROM  classes, teacher, enrollment
     WHERE teacher.id = classes.teacher_ID
+    AND enrollment.classes_id = classes.id
     ''')
     result =  db.session.execute(sql)
     results = result.mappings().all()
+    return render_template('add_student.html', prefix=' ', person=student, classes=results, enrolled=enrolled)
 
-    return render_template('add_student.html', prefix=' ', name=student.name, rows = results)
+
+@app.route('/student/addCourses/<class_id>/remove')
+@login_required
+@require_role(role='Student')
+def remove(class_id):
+    student = Student.query.filter_by(user_id=current_user.id).first()
+    remove_enrolled = Enrollment.query.filter_by(classes_id=class_id, student_id=student.id).first()
+    db.session.delete(remove_enrolled)
+    db.session.commit()
+    return redirect(url_for('student_add_courses'))
+
+@app.route('/student/addCourses/<class_id>/add')
+@login_required
+@require_role(role='Student')
+def add(class_id):
+    student = Student.query.filter_by(user_id=current_user.id).first()
+    add_enrolled = Enrollment(grade=0,classes_id=class_id, student_id=student.id)
+    db.session.add(add_enrolled)
+    db.session.commit()
+    return redirect(url_for('student_add_courses'))
+
 
 @app.route('/teacher')
 @login_required
@@ -270,7 +293,7 @@ def teacher_home():
     results = result.mappings().all()
     
 
-    return render_template('teacher.html', prefix=' Dr. ', name=teacher.name, rows = results)
+    return render_template('teacher.html', prefix=' Dr. ', person=teacher, rows = results)
 @app.route('/teacher/<course_id>')
 @login_required
 @require_role(role='Teacher')
@@ -290,7 +313,7 @@ def teacher_course(course_id):
     results = result.mappings().all()
     
 
-    return render_template('teacher_course.html', prefix=' Dr. ', name=teacher.name, rows = results)
+    return render_template('teacher_course.html', prefix=' Dr. ', person=teacher, rows = results)
 
 
 
