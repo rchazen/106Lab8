@@ -14,3 +14,7 @@ function addUser(){
     // .then(res => res.json())
     // .then((data) => showGrades(data))
 }
+
+function addEnrollement(){
+    
+}

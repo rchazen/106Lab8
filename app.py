@@ -236,6 +236,10 @@ def student_your_courses():
 @login_required
 @require_role(role='Student')
 def student_add_courses():
+    if request.method == "POST":
+        course = request.form["course"]
+        print(course)
+        #new_enrollment = Enrollment(classes_id = )
     student = Student.query.filter_by(user_id=current_user.id).first()
     sql = text('''
     SELECT course_name, teacher.name, classes.time, classes.number_enrolled, classes.capacity

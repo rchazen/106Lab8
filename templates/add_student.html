@@ -18,12 +18,15 @@
                 <th>Add Class</th>
             </tr>
             {% for row in rows %}
+            <form action="#" method = "post">
             <tr>  
                 <td>{{row.course_name}}</td>
                 <td>{{row.name}}</td>
                 <td>{{row.time}}</td>
-                <td>{{row.number_enrolled}}/{{row.capacity}}</td>    
+                <td>{{row.number_enrolled}}/{{row.capacity}}</td> 
+                <td><button onclick="addEnrollement()">Enroll</button></td>
             </tr>
+        </form>
         {% endfor %}
 
         </table>
