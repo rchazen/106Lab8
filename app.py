@@ -7,6 +7,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from functools import wraps
+from sqlalchemy import text
 import json
 
 app = Flask(__name__)
@@ -15,7 +16,7 @@ app.secret_key = 'shhh'
 with app.app_context():
     # Setup
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///instance/db.sqlite3"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
     db = SQLAlchemy(app)
     #Sets up admin page
     admin = Admin(app)
@@ -23,7 +24,7 @@ with app.app_context():
     login_manager = LoginManager()
     login_manager.login_view = 'logIn'
     login_manager.init_app(app)
-
+    
     # Database
     student_enrollment = db.Table('student_enrollment',
         db.Column('student_id', db.Integer, db.ForeignKey('student.id'), primary_key = True),
@@ -61,11 +62,13 @@ with app.app_context():
         id = db.Column(db.Integer, primary_key=True)
         username = db.Column(db.String, unique = True, nullable=False)
         password = db.Column(db.String, unique = False, nullable = False)
+        roles = db.relationship('Role', secondary=roles_users,backref=db.backref('users', lazy='dynamic'))
         # Relationship User-Student
         student = db.relationship('Student', back_populates='user', uselist=False)
         # Relationship User-Teacher
         teacher = db.relationship('Teacher', back_populates='user', uselist=False)
         roles = db.relationship('Role', secondary=roles_users,backref=db.backref('users', lazy='dynamic'))
+        
         def has_role(self, role_name):
             #Does the user have this permission?
             my_role = Role.query.filter_by(name=role_name).first()
@@ -128,6 +131,7 @@ with app.app_context():
         #enrollment_id = db.Column(db.Integer, db.ForeignKey('enrollment.id'), unique = False, nullable=False)
         # Relationship Classes-Student
         enrollment = db.relationship('Enrollment', secondary = 'classes_enrollment', back_populates='classes')
+
     db.create_all()
 
     # Admin
