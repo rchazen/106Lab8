@@ -20,7 +20,11 @@
             {% for row in rows %}
             <tr>
                 <td>{{row.name}}</td>
-                <td>{{row.grade}}</td>
+                <td>
+                    <form method="POST" action="{{url_for('edit_grade', enroll_id=row.enrollment_id)}}">
+                        <input type="number" name ="grade" id ="grade" value="{{row.grade}}">
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </table>

@@ -260,6 +260,9 @@ def remove(class_id):
     student = Student.query.filter_by(user_id=current_user.id).first()
     remove_enrolled = Enrollment.query.filter_by(classes_id=class_id, student_id=student.id).first()
     db.session.delete(remove_enrolled)
+    decrement = Classes.query.filter_by(id=class_id).first()
+    if decrement.number_enrolled > 0:
+        decrement.number_enrolled -= 1
     db.session.commit()
     return redirect(url_for('student_add_courses'))
 
@@ -269,6 +272,8 @@ def remove(class_id):
 def add(class_id):
     student = Student.query.filter_by(user_id=current_user.id).first()
     add_enrolled = Enrollment(grade=0,classes_id=class_id, student_id=student.id)
+    increment = Classes.query.filter_by(id=class_id).first()
+    increment.number_enrolled += 1
     db.session.add(add_enrolled)
     db.session.commit()
     return redirect(url_for('student_add_courses'))
@@ -300,7 +305,7 @@ def teacher_course(course_id):
     teacher = Teacher.query.filter_by(user_id=current_user.id).first()
     classes = Classes.query.filter_by(id=course_id).first()
     sql = text(''' 
-    SELECT student.name, enrollment.grade, course_name
+    SELECT student.name, enrollment.grade, course_name, enrollment.id AS enrollment_id
     FROM student, enrollment, classes
     WHERE student.id = enrollment.student_id
     AND classes.id = enrollment.classes_id
@@ -308,11 +313,23 @@ def teacher_course(course_id):
     ''')
     name = {'x': classes.id}
     result = db.session.execute(sql, name)
-
     results = result.mappings().all()
-    
+    print(results)
+    return render_template('teacher_course.html', prefix=' Dr. ', person=teacher, rows = results, course=course_id)
 
-    return render_template('teacher_course.html', prefix=' Dr. ', person=teacher, rows = results)
+@app.route('/teacher/<enroll_id>', methods=['POST'])
+@login_required
+@require_role(role='Teacher')
+def edit_grade(enroll_id):
+    enrollment = Enrollment.query.filter_by(id=enroll_id).first()
+    print(enrollment.grade)
+    grade = request.form.get('grade')
+    print(grade)
+    enrollment.grade = grade
+    print(enrollment.grade)
+    db.session.commit()
+    return redirect(url_for('teacher_course', course_id=enrollment.classes_id))
+
 
 
 
