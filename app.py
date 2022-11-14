@@ -214,7 +214,41 @@ def student_add_courses():
 @require_role(role='Teacher')
 def teacher_home():
     teacher = Teacher.query.filter_by(user_id=current_user.id).first()
-    return render_template('teacher.html', prefix=' Dr. ', name=teacher.name)
+    name = Teacher.query.filter_by(user_id=current_user.id).first()
+    sql = text(''' 
+    SELECT course_name, teacher.name, classes.time, classes.number_enrolled, classes.capacity
+    FROM  classes, teacher
+    WHERE teacher.id = classes.teacher_ID
+    AND teacher_ID = :x
+    ''')
+    name = {'x': teacher.id}
+    result = db.session.execute(sql, name)
+
+    results = result.mappings().all()
+    
+
+    return render_template('teacher.html', prefix=' Dr. ', name=teacher.name, rows = results)
+@app.route('/teacherCourse')
+@login_required
+@require_role(role='Teacher')
+def teacher_course():
+    teacher = Teacher.query.filter_by(user_id=current_user.id).first()
+    classes = Classes.query.filter_by(id=1).first()
+    sql = text(''' 
+    SELECT student.name, enrollment.grade
+    FROM student, enrollment, classes
+    WHERE student.id = enrollment.student_id
+    AND classes.id = enrollment.class_id
+    AND classes.id = ?
+    ''')
+    name = {'x': classes.id}
+    result = db.session.execute(sql, name)
+
+    results = result.mappings().all()
+    
+
+    return render_template('teacher.html', prefix=' Dr. ', name=teacher.name, rows = results)
+
 
 
 
