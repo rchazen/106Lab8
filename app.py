@@ -16,7 +16,7 @@ app.secret_key = 'shhh'
 with app.app_context():
     # Setup
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///instance/db.sqlite3"
     db = SQLAlchemy(app)
     #Sets up admin page
     admin = Admin(app)
@@ -31,6 +31,10 @@ with app.app_context():
         db.Column('classes_id', db.Integer, db.ForeignKey('classes.id'), primary_key = True)
     )
 
+    roles_users = db.Table('roles_users',
+                           db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+                           db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
+
     class Enrollment(db.Model):
         __tablename__ = "enrollment"
         id = db.Column(db.Integer, primary_key=True)
@@ -44,26 +48,22 @@ with app.app_context():
         # Relationship enrollment-student
         student = db.relationship('Student', back_populates='enrollment')
 
-
     class Role(db.Model):
         __tablename__ = "role"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String(80), unique=True)
-    roles_users = db.Table('roles_users',
-                           db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
-                           db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
     class User(UserMixin, db.Model):
         __tablename__ = "user"
         id = db.Column(db.Integer, primary_key=True)
         username = db.Column(db.String, unique = True, nullable=False)
         password = db.Column(db.String, unique = False, nullable = False)
+        # Relationship User-Role
         roles = db.relationship('Role', secondary=roles_users,backref=db.backref('users', lazy='dynamic'))
         # Relationship User-Student
         student = db.relationship('Student', back_populates='user', uselist=False)
         # Relationship User-Teacher
         teacher = db.relationship('Teacher', back_populates='user', uselist=False)
-        roles = db.relationship('Role', secondary=roles_users,backref=db.backref('users', lazy='dynamic'))
         
         def has_role(self, role_name):
             #Does the user have this permission?
@@ -72,6 +72,7 @@ with app.app_context():
                 return True
             else:
                 return False
+    
     def require_role(role):
         #make sure user has this role
         def decorator(func):
@@ -84,6 +85,7 @@ with app.app_context():
             return wrapped_function
         return decorator
     #A user loader tells Flask-Login how to find a specific user from the ID that is stored in their session cookie
+    
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
