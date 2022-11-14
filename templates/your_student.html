@@ -16,6 +16,22 @@
                 <th>Time</th>
                 <th>Students Enrolled</th>
             </tr>
+            {% for row in rows %}
+                <tr>  
+                    <td>{{row.course_name}}</td>
+                    <td>{{row.teacher_name}}</td>
+                    <td>{{row.time}}</td>
+                    <td>{{row.number_enrolled}}/{{row.capacity}}</td>
+                        
+                </tr>
+            {% endfor %}
+           
+
+           
+
+
+           
         </table>
     </div>
+
 {% endblock %}
