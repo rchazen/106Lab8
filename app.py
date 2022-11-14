@@ -32,8 +32,9 @@ with app.app_context():
     )
 
     roles_users = db.Table('roles_users',
-                           db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
-                           db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
+        db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+        db.Column('role_id', db.Integer(), db.ForeignKey('role.id'))
+    )
 
     class Enrollment(db.Model):
         __tablename__ = "enrollment"
@@ -52,6 +53,8 @@ with app.app_context():
         __tablename__ = "role"
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String(80), unique=True)
+        user_username = db.Column(db.String, db.ForeignKey('user.username'), unique = True)
+        user = db.relationship('User', backref='Role')
 
     class User(UserMixin, db.Model):
         __tablename__ = "user"
