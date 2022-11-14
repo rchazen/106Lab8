@@ -16,7 +16,7 @@ app.secret_key = 'shhh'
 with app.app_context():
     # Setup
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///instance/db.sqlite3"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
     db = SQLAlchemy(app)
     #Sets up admin page
     admin = Admin(app)
@@ -200,7 +200,7 @@ def student_your_courses():
     sql = text(''' 
     SELECT course_name, teacher.name AS teacher_name, classes.time, classes.number_enrolled, classes.capacity
     FROM enrollment, classes, student, teacher
-    WHERE enrollment.class_id = classes.id
+    WHERE enrollment.classes_id = classes.id
     AND student.id = enrollment.student_id
     AND teacher.id = classes.teacher_ID
     AND student.name = :x
@@ -235,7 +235,7 @@ def teacher_home():
     teacher = Teacher.query.filter_by(user_id=current_user.id).first()
     name = Teacher.query.filter_by(user_id=current_user.id).first()
     sql = text(''' 
-    SELECT course_name, teacher.name, classes.time, classes.number_enrolled, classes.capacity
+    SELECT course_name, teacher.name, classes.time, classes.number_enrolled, classes.capacity, classes.id
     FROM  classes, teacher
     WHERE teacher.id = classes.teacher_ID
     AND teacher_ID = :x
@@ -247,18 +247,18 @@ def teacher_home():
     
 
     return render_template('teacher.html', prefix=' Dr. ', name=teacher.name, rows = results)
-@app.route('/teacherCourse')
+@app.route('/teacher/<course_id>')
 @login_required
 @require_role(role='Teacher')
-def teacher_course():
+def teacher_course(course_id):
     teacher = Teacher.query.filter_by(user_id=current_user.id).first()
-    classes = Classes.query.filter_by(id=1).first()
+    classes = Classes.query.filter_by(id=course_id).first()
     sql = text(''' 
-    SELECT student.name, enrollment.grade
+    SELECT student.name, enrollment.grade, course_name
     FROM student, enrollment, classes
     WHERE student.id = enrollment.student_id
-    AND classes.id = enrollment.class_id
-    AND classes.id = ?
+    AND classes.id = enrollment.classes_id
+    AND classes.id = :x
     ''')
     name = {'x': classes.id}
     result = db.session.execute(sql, name)
@@ -266,7 +266,7 @@ def teacher_course():
     results = result.mappings().all()
     
 
-    return render_template('teacher.html', prefix=' Dr. ', name=teacher.name, rows = results)
+    return render_template('teacher_course.html', prefix=' Dr. ', name=teacher.name, rows = results)
 
 
 

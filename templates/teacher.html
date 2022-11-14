@@ -17,7 +17,7 @@
             </tr>
             {% for row in rows %}
             <tr>  
-                <td><a href ="google.com">{{row.course_name}}</a></td>
+                <td><a href ="{{ url_for('teacher_course', course_id=row.id)}}">{{row.course_name}}</a></td>
                 <td>{{row.name}}</td>
                 <td>{{row.time}}</td>
                 <td>{{row.number_enrolled}}/{{row.capacity}}</td>    

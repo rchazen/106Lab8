@@ -2,7 +2,7 @@
 
 {% block options %}
     <div class="option_container">
-        <div class="teacher_option_active"> Your Courses </div>
+        <div class="teacher_option_active"> {{ rows.course_name }} </div>
     </div>
 {% endblock %}
 
@@ -10,17 +10,11 @@
     <div class="table_container">
         <table>
             <tr>
-                <th>Course Name</th>
-                <th>Teacher</th>
-                <th>Time</th>
-                <th>Students Enrolled</th>
+                <th>Student Name</th>
+                <th>Grade</th>
             </tr>
             {% for row in rows %}
-            <tr>  
-                <td><a href ="google.com">{{row.course_name}}</a></td>
-                <td>{{row.name}}</td>
-                <td>{{row.time}}</td>
-                <td>{{row.number_enrolled}}/{{row.capacity}}</td>    
+            <tr>
             </tr>
             {% endfor %}
         </table>
