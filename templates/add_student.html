@@ -17,6 +17,15 @@
                 <th>Students Enrolled</th>
                 <th>Add Class</th>
             </tr>
+            {% for row in rows %}
+            <tr>  
+                <td>{{row.course_name}}</td>
+                <td>{{row.name}}</td>
+                <td>{{row.time}}</td>
+                <td>{{row.number_enrolled}}/{{row.capacity}}</td>    
+            </tr>
+        {% endfor %}
+
         </table>
     </div>
 {% endblock %}

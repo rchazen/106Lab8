@@ -177,15 +177,37 @@ def logOut():
 @require_role(role='Student')
 def student_your_courses():
     student = Student.query.filter_by(user_id=current_user.id).first()
+    name = Student.query.filter_by(user_id=current_user.id).first()
+    sql = text(''' 
+    SELECT course_name, teacher.name AS teacher_name, classes.time, classes.number_enrolled, classes.capacity
+    FROM enrollment, classes, student, teacher
+    WHERE enrollment.class_id = classes.id
+    AND student.id = enrollment.student_id
+    AND teacher.id = classes.teacher_ID
+    AND student.name = :x
+    ''')
+    name = {'x': student.name}
+    result = db.session.execute(sql, name)
+
+    results = result.mappings().all()
     
-    return render_template('your_student.html', prefix=' ', name=student.name)
+    # course = row.course_name, teacher = row.teacher_name, time = row.time, num_enrolled = row.number_enrolled,
+    return render_template('your_student.html', prefix=' ', name=student.name, rows = results)
 
 @app.route('/student/addCourses')
 @login_required
 @require_role(role='Student')
 def student_add_courses():
     student = Student.query.filter_by(user_id=current_user.id).first()
-    return render_template('add_student.html', prefix=' ', name=student.name)
+    sql = text('''
+    SELECT course_name, teacher.name, classes.time, classes.number_enrolled, classes.capacity
+    FROM  classes, teacher
+    WHERE teacher.id = classes.teacher_ID
+    ''')
+    result =  db.session.execute(sql)
+    results = result.mappings().all()
+
+    return render_template('add_student.html', prefix=' ', name=student.name, rows = results)
 
 @app.route('/teacher')
 @login_required
