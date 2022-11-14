@@ -245,9 +245,8 @@ def student_add_courses():
     enrolled = Enrollment.query.filter_by(student_id=student.id).all()
     sql = text('''
     SELECT course_name, teacher.name, classes.time, classes.number_enrolled, classes.capacity, classes.id
-    FROM  classes, teacher, enrollment
+    FROM  classes, teacher
     WHERE teacher.id = classes.teacher_ID
-    AND enrollment.classes_id = classes.id
     ''')
     result =  db.session.execute(sql)
     results = result.mappings().all()
