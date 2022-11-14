@@ -18,28 +18,24 @@ with app.app_context():
     admin = Admin(app)
 
     # Database
-    student_enrollment = db.Table('student_enrollment',
+    student_classes = db.Table('student_classes',
         db.Column('student_id', db.Integer, db.ForeignKey('student.id'), primary_key = True),
-        db.Column('enrollment_id', db.Integer, db.ForeignKey('enrollment.id'), primary_key = True)
-    )
-
-    classes_enrollment = db.Table('classes_enrollment',
-        db.Column('classes_id', db.Integer, db.ForeignKey('classes.id'), primary_key = True),
-        db.Column('enrollment_id', db.Integer, db.ForeignKey('enrollment.id'), primary_key = True)
+        db.Column('classes_id', db.Integer, db.ForeignKey('classes.id'), primary_key = True)
     )
 
     class Enrollment(db.Model):
         __tablename__ = "enrollment"
         id = db.Column(db.Integer, primary_key=True)
         grade = db.Column(db.Integer, unique = False, nullable = False)
-        # Foreign Key From classes.id
-        classes_id = db.Column(db.Integer, db.ForeignKey('classes.id'))
-        # Foreign Key From teacher.id
-        student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
-        # Relationship Classes-Student
-        classes = db.relationship('Classes', secondary = 'classes_enrollment', back_populates='enrollment')
-        # Relationship Student-Classes
-        student = db.relationship('Student', secondary = 'student_enrollment', back_populates='enrollment')
+        # Foreign Key From student.id
+        classes_id = db.Column(db.Integer, db.ForeignKey('student.id'), unique = False)
+        # Relationship enrollment-class
+        classes = db.relationship('Classes', back_populates='enrollment')
+        # Foreign Key From class.id
+        student_id = db.Column(db.Integer, db.ForeignKey('classes.id'), unique = False)
+        # Relationship enrollment-student
+        student = db.relationship('Student', back_populates='enrollment')
+
 
     class User(db.Model):
         __tablename__ = "user"
@@ -59,10 +55,10 @@ with app.app_context():
         user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique = True, nullable = False)
         # Relationship User-Student
         user = db.relationship('User', back_populates='student', uselist=False)
-        # Foreign Key From enrollment.id
-        #enrollment_id = db.Column(db.Integer, db.ForeignKey('enrollment.id'), unique = False, nullable=False)
+        # Relationship Enrollment-Student
+        enrollment = db.relationship('Enrollment', back_populates='student')
         # Relationship Classes-Student
-        enrollment = db.relationship('Enrollment', secondary = 'student_enrollment', back_populates='student')
+        classes = db.relationship('Classes',secondary='student_classes', back_populates='student')
 
     class Teacher(db.Model):
         __tablename__ = "teacher"
@@ -86,10 +82,10 @@ with app.app_context():
         teacher_ID = db.Column(db.String, db.ForeignKey('teacher.id'), unique = False, nullable=False)
         # Relationship Classes-Teacher
         teacher = db.relationship('Teacher', back_populates='classes')
-        # Foreign Key From enrollment.id
-        #enrollment_id = db.Column(db.Integer, db.ForeignKey('enrollment.id'), unique = False, nullable=False)
-        # Relationship Classes-Student
-        enrollment = db.relationship('Enrollment', secondary = 'classes_enrollment', back_populates='classes')
+        # Relationship Enrollment-Student
+        enrollment = db.relationship('Enrollment', back_populates='classes')
+        # Relationship Class-Student
+        student = db.relationship('Student', secondary='student_classes', back_populates='classes')
     db.create_all()
 
     # Admin
